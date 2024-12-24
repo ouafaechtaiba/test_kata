@@ -29,16 +29,19 @@ CREATE TABLE IF NOT EXISTS products (
 -- Créer la table des paniers
 CREATE TABLE IF NOT EXISTS cart (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    userId VARCHAR(255) NOT NULL,  -- Utilise l'email comme identifiant
+    userId INT NOT NULL,  -- Utilise l'ID de l'utilisateur comme identifiant
     productId INT NOT NULL,
     quantity INT NOT NULL,
-    FOREIGN KEY (productId) REFERENCES products(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,  -- Suppression du panier si l'utilisateur est supprimé
+    FOREIGN KEY (productId) REFERENCES products(id) ON DELETE CASCADE  -- Suppression du produit du panier si le produit est supprimé
 );
 
 -- Créer la table des listes d'envies
 CREATE TABLE IF NOT EXISTS wishlist (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    userId VARCHAR(255) NOT NULL,  -- Utilise l'email comme identifiant
+    userId INT NOT NULL,  -- Utilise l'ID de l'utilisateur comme identifiant
     productId INT NOT NULL,
-    FOREIGN KEY (productId) REFERENCES products(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,  -- Suppression de la liste d'envies si l'utilisateur est supprimé
+    FOREIGN KEY (productId) REFERENCES products(id) ON DELETE CASCADE  -- Suppression du produit de la liste d'envies si le produit est supprimé
 );
+
