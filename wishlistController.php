@@ -1,70 +1,60 @@
 <?php
-require_once 'config.php';
+require_once 'database.php';
+require_once 'Wishlist.php';
+require_once 'jwtHelper.php';
 
-// Ajouter un produit à la liste d'envies
-function addToWishlist() {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $token = getBearerToken();
-    $decoded = verifyJWT($token);
-
-    if (!$decoded) {
-        echo json_encode(['message' => 'Unauthorized']);
-        return;
-    }
-
-    if (empty($data['productId'])) {
-        echo json_encode(['message' => 'Invalid data']);
-        return;
-    }
-
-    $userId = $decoded->email; // Utiliser l'email de l'utilisateur comme identifiant
-
-    $stmt = $pdo->prepare("INSERT INTO wishlist (userId, productId) VALUES (?, ?)");
-    $stmt->execute([$userId, $data['productId']]);
-
-    echo json_encode(['message' => 'Product added to wishlist']);
-}
-
-// Obtenir les produits dans la liste d'envies
+// Récupérer tous les produits dans la liste de souhaits d'un utilisateur
 function getWishlist() {
+    // Vérifier le token JWT
     $token = getBearerToken();
     $decoded = verifyJWT($token);
-
+    
     if (!$decoded) {
         echo json_encode(['message' => 'Unauthorized']);
         return;
     }
 
-    $userId = $decoded->email;
-
-    $stmt = $pdo->prepare("SELECT * FROM wishlist WHERE userId = ?");
-    $stmt->execute([$userId]);
-    $wishlistItems = $stmt->fetchAll();
-
+    global $pdo;
+    $wishlistItems = Wishlist::getWishlistByUserId($pdo, $decoded->email);
     echo json_encode($wishlistItems);
 }
 
-// Retirer un produit de la liste d'envies
-function removeFromWishlist() {
-    $data = json_decode(file_get_contents('php://input'), true);
+// Ajouter un produit à la liste de souhaits
+function addToWishlist() {
+    // Vérifier le token JWT
     $token = getBearerToken();
     $decoded = verifyJWT($token);
-
+    
     if (!$decoded) {
         echo json_encode(['message' => 'Unauthorized']);
         return;
     }
+
+    $data = json_decode(file_get_contents('php://input'), true);
 
     if (empty($data['productId'])) {
         echo json_encode(['message' => 'Invalid data']);
         return;
     }
 
-    $userId = $decoded->email;
+    $wishlist = new Wishlist(null, $decoded->email, $data['productId']);
+    $wishlistId = Wishlist::addToWishlist($pdo, $wishlist);
+    echo json_encode(['message' => 'Product added to wishlist', 'id' => $wishlistId]);
+}
 
-    $stmt = $pdo->prepare("DELETE FROM wishlist WHERE userId = ? AND productId = ?");
-    $stmt->execute([$userId, $data['productId']]);
+// Supprimer un produit de la liste de souhaits
+function removeFromWishlist($id) {
+    // Vérifier le token JWT
+    $token = getBearerToken();
+    $decoded = verifyJWT($token);
+    
+    if (!$decoded) {
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
 
+    Wishlist::removeFromWishlist($pdo, $id);
     echo json_encode(['message' => 'Product removed from wishlist']);
 }
 ?>
+
