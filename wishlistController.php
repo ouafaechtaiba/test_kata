@@ -1,6 +1,6 @@
 <?php
 require_once 'config.php';
-require_once 'Wishlist.php';
+require_once 'wishlist.php';
 require_once 'jwtHelper.php';
 
 // Récupérer tous les produits dans la liste de souhaits d'un utilisateur
