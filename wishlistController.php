@@ -1,5 +1,5 @@
 <?php
-require_once 'database.php';
+require_once 'config.php';
 require_once 'Wishlist.php';
 require_once 'jwtHelper.php';
 
