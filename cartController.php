@@ -1,70 +1,82 @@
 <?php
 require_once 'config.php';
+require_once 'Cart.php';
+require_once 'jwtHelper.php';
 
-// Ajouter un produit au panier
-function addToCart() {
-    $data = json_decode(file_get_contents('php://input'), true);
+// Récupérer tous les éléments du panier d'un utilisateur
+function getCart() {
+    // Vérifier le token JWT
     $token = getBearerToken();
     $decoded = verifyJWT($token);
-
+    
     if (!$decoded) {
         echo json_encode(['message' => 'Unauthorized']);
         return;
     }
+
+    global $pdo;
+    $cartItems = Cart::getCartByUserId($pdo, $decoded->email);
+    echo json_encode($cartItems);
+}
+
+// Ajouter un produit au panier
+function addToCart() {
+    // Vérifier le token JWT
+    $token = getBearerToken();
+    $decoded = verifyJWT($token);
+    
+    if (!$decoded) {
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
 
     if (empty($data['productId']) || empty($data['quantity'])) {
         echo json_encode(['message' => 'Invalid data']);
         return;
     }
 
-    $userId = $decoded->email; // Utiliser l'email pour identifier l'utilisateur
-
-    $stmt = $pdo->prepare("INSERT INTO cart (userId, productId, quantity) VALUES (?, ?, ?)");
-    $stmt->execute([$userId, $data['productId'], $data['quantity']]);
-
-    echo json_encode(['message' => 'Product added to cart']);
+    $cart = new Cart(null, $decoded->email, $data['productId'], $data['quantity']);
+    $cartId = Cart::addToCart($pdo, $cart);
+    echo json_encode(['message' => 'Product added to cart', 'id' => $cartId]);
 }
 
-// Obtenir les produits dans le panier
-function getCart() {
+// Mettre à jour la quantité d'un produit dans le panier
+function updateCart($id) {
+    // Vérifier le token JWT
     $token = getBearerToken();
     $decoded = verifyJWT($token);
-
+    
     if (!$decoded) {
         echo json_encode(['message' => 'Unauthorized']);
         return;
     }
 
-    $userId = $decoded->email;
-
-    $stmt = $pdo->prepare("SELECT * FROM cart WHERE userId = ?");
-    $stmt->execute([$userId]);
-    $cartItems = $stmt->fetchAll();
-
-    echo json_encode($cartItems);
-}
-
-// Retirer un produit du panier
-function removeFromCart() {
     $data = json_decode(file_get_contents('php://input'), true);
-    $token = getBearerToken();
-    $decoded = verifyJWT($token);
 
-    if (!$decoded) {
-        echo json_encode(['message' => 'Unauthorized']);
-        return;
-    }
-
-    if (empty($data['productId'])) {
+    if (empty($data['quantity'])) {
         echo json_encode(['message' => 'Invalid data']);
         return;
     }
 
-    $userId = $decoded->email;
+    Cart::updateCart($pdo, $id, $data['quantity']);
+    echo json_encode(['message' => 'Cart updated']);
+}
 
-    $stmt = $pdo->prepare("DELETE FROM cart WHERE userId = ? AND productId = ?");
-    $stmt->execute([$userId, $data['productId']]);
+// Supprimer un produit du panier
+function removeFromCart($id) {
+    // Vérifier le token JWT
+    $token = getBearerToken();
+    $decoded = verifyJWT($token);
+    
+    if (!$decoded) {
+        echo json_encode(['message' => 'Unauthorized']);
+        return;
+    }
 
+    Cart::removeFromCart($pdo, $id);
     echo json_encode(['message' => 'Product removed from cart']);
 }
 ?>
+
