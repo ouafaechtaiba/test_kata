@@ -32,65 +32,74 @@ class Product {
         $this->updatedAt = $updatedAt;
     }
 
-    // Récupération de tous les produits
     public static function getAllProducts($pdo) {
         $stmt = $pdo->query("SELECT * FROM products");
         return $stmt->fetchAll();
     }
 
-    // Récupérer un produit par son ID
     public static function getProductById($pdo, $id) {
-        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = :id");
+        $stmt->execute(['id' => $id]);
         return $stmt->fetch();
     }
 
-    // Créer un nouveau produit
-    public static function createProduct($pdo, $product) {
+    public static function createProduct($pdo, Product $product) {
         $stmt = $pdo->prepare("INSERT INTO products (code, name, description, image, category, price, quantity, internalReference, shellId, inventoryStatus, rating, createdAt, updatedAt) 
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                               VALUES (:code, :name, :description, :image, :category, :price, :quantity, :internalReference, :shellId, :inventoryStatus, :rating, :createdAt, :updatedAt)");
         $stmt->execute([
-            $product->code, 
-            $product->name, 
-            $product->description, 
-            $product->image, 
-            $product->category, 
-            $product->price, 
-            $product->quantity, 
-            $product->internalReference, 
-            $product->shellId, 
-            $product->inventoryStatus, 
-            $product->rating, 
-            $product->createdAt, 
-            $product->updatedAt
+            'code' => $product->code,
+            'name' => $product->name,
+            'description' => $product->description,
+            'image' => $product->image,
+            'category' => $product->category,
+            'price' => $product->price,
+            'quantity' => $product->quantity,
+            'internalReference' => $product->internalReference,
+            'shellId' => $product->shellId,
+            'inventoryStatus' => $product->inventoryStatus,
+            'rating' => $product->rating,
+            'createdAt' => $product->createdAt,
+            'updatedAt' => $product->updatedAt,
         ]);
-        return $pdo->lastInsertId();  // Retourne l'ID du produit inséré
+        return $pdo->lastInsertId();
     }
 
-    // Mettre à jour un produit existant
-    public static function updateProduct($pdo, $id, $product) {
-        $stmt = $pdo->prepare("UPDATE products SET code = ?, name = ?, description = ?, image = ?, category = ?, price = ?, quantity = ?, internalReference = ?, shellId = ?, inventoryStatus = ?, rating = ?, updatedAt = ? WHERE id = ?");
+    public static function updateProduct($pdo, $id, Product $product) {
+        $stmt = $pdo->prepare("UPDATE products SET 
+                               code = :code, 
+                               name = :name, 
+                               description = :description, 
+                               image = :image, 
+                               category = :category, 
+                               price = :price, 
+                               quantity = :quantity, 
+                               internalReference = :internalReference, 
+                               shellId = :shellId, 
+                               inventoryStatus = :inventoryStatus, 
+                               rating = :rating, 
+                               updatedAt = :updatedAt 
+                               WHERE id = :id");
         $stmt->execute([
-            $product->code, 
-            $product->name, 
-            $product->description, 
-            $product->image, 
-            $product->category, 
-            $product->price, 
-            $product->quantity, 
-            $product->internalReference, 
-            $product->shellId, 
-            $product->inventoryStatus, 
-            $product->rating, 
-            $product->updatedAt, 
-            $id
+            'code' => $product->code,
+            'name' => $product->name,
+            'description' => $product->description,
+            'image' => $product->image,
+            'category' => $product->category,
+            'price' => $product->price,
+            'quantity' => $product->quantity,
+            'internalReference' => $product->internalReference,
+            'shellId' => $product->shellId,
+            'inventoryStatus' => $product->inventoryStatus,
+            'rating' => $product->rating,
+            'updatedAt' => $product->updatedAt,
+            'id' => $id
         ]);
     }
 
-    // Supprimer un produit par son ID
     public static function deleteProduct($pdo, $id) {
-        $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("DELETE FROM products WHERE id = :id");
+        $stmt->execute(['id' => $id]);
     }
 }
 ?>
+
