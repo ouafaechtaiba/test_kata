@@ -1,6 +1,6 @@
 <?php
 require_once 'config.php';
-require_once 'Product.php';
+require_once 'product.php';
 require_once 'jwtHelper.php';
 
 // Récupérer tous les produits
